@@ -2,9 +2,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.DataFormatException;
 
-//@SuppressWarnings("all")
+/**
+ * The STUMPED program implements an SIMULATED CPU that
+ * uses micro code and assemlby to simulate CPU opperations
+ *
+ * @author  Josh Poe
+ * @version 1.0
+ * @since   11/20/2020
+ */
+
+@SuppressWarnings("all")
 public class Stumped {
 
     private static Stack<Integer> stack;
@@ -13,14 +21,19 @@ public class Stumped {
     private static int inputCMD = 0;
     private static boolean isInput = true;
     private static int counter = 0;
+    private static boolean isStackTrace = false;
+    private static boolean isDebug = false;
 
+    /**
+     *
+     * @param args
+     */
     public static void main(String[] args) {
         mem = new int[4095];
         arr = new ArrayList<String>();
         stack = new Stack<Integer>();
 
         try {
-            //File myObj = new File("C:\\Users\\Icarus44\\IdeaProjects\\STumpED\\src\\input.txt");
             File myObj = new File(args[0]);
             Scanner myReader = new Scanner(myObj);
             myReader.nextLine();
@@ -32,19 +45,25 @@ public class Stumped {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+
         try {
             inputCMD = Integer.parseInt(args[1]);
             isInput = true;
         } catch (ArrayIndexOutOfBoundsException e) {
+
         }
 
         while (!(arr.get(counter).equals("0F00"))) {
-            execute(arr.get(counter));
+            CPU(arr.get(counter));
         }
 
     }
 
-    private static void execute(String args) {
+    /**
+     *
+     * @param args
+     */
+    private static void CPU(String args) {
         counter++;
         try {
             TimeUnit.MILLISECONDS.sleep(0);
@@ -52,15 +71,9 @@ public class Stumped {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        /**
-         * debug
-         */
-//        if (!stack.empty()) {
-//            System.out.print(" Stack: " + stack.toString());
-//            System.out.print("\n arg: " + args);
-//            System.out.print(" " + "Counter: " + counter);
-//        }
-
+        if (isDebug){
+            debug(args);
+        }
         String opcode = args.substring(0, 1);
         String dataHex = args.substring(1);
         int data = HEXTODEC(dataHex);
@@ -70,48 +83,39 @@ public class Stumped {
                 break;
             case "1":
                 PUSHI(dataHex);
-                // System.out.print(opcode);
-                // System.out.println(": PUSHI");
+                if(isStackTrace){ stackTrace(data,"PUSHI");}
                 break;
             case "2":
                 PUSHA(data);
-                // System.out.print(opcode);
-                // System.out.println(": PUSHA");
+                if(isStackTrace){ stackTrace(data,"PUSHA");}
                 break;
             case "3":
                 POPA(data);
-                // System.out.print(opcode);
-                // System.out.println(": POPA");
+                if(isStackTrace){ stackTrace(data,"POPA");}
                 break;
             case "4":
                 JMPA(dataHex);
-                // System.out.print(opcode);
-                // System.out.println(": JMPA");
+                if(isStackTrace){ stackTrace(data,"JMPA");}
                 break;
             case "5":
                 JZA(dataHex);
-                // System.out.print(opcode);
-                // System.out.println(": JZA");
+                if(isStackTrace){ stackTrace(data,"JZA");}
                 break;
             case "6":
                 JNZA(dataHex);
-                // System.out.print(opcode);
-                // System.out.println(": JNZA");
+                if(isStackTrace){ stackTrace(data,"JNZA");}
                 break;
             case "D":
                 IN(data);
-                // System.out.print(opcode);
-                // System.out.println(": IN");
+                if(isStackTrace){ stackTrace(data,"IN");}
                 break;
             case "E":
                 OUT(data);
-                // System.out.print(opcode);
-                // System.out.println(": OUT");
+                if(isStackTrace){ stackTrace(data,"OUT");}
                 break;
             case "F":
                 ALU(data);
-                // System.out.print(opcode);
-                // System.out.println(": ALU");
+                if(isStackTrace){ stackTrace(data,"ALU") ;}
                 break;
             default:
                 break;
@@ -119,227 +123,212 @@ public class Stumped {
 
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void CONTROL(int data) {
         switch (data) {
-            case 0: // 0x000
-                // System.out.print(DECTOHEX(data));
-                // System.out.println(": NOP");
+            case 0: // 0x00)
                 NOP(data);
+                if(isStackTrace){ stackTrace(data,"NOP");}
                 break;
             case 256: // 0x100
                 PUSHPC(data);
-                // System.out.print(DECTOHEX(data));
-                // System.out.println(": PUSHPC");
+                if(isStackTrace){ stackTrace(data,"PUSHPC");}
                 break;
             case 512: // 0x200
                 POPPC(data);
-                // System.out.print(DECTOHEX(data));
-                // System.out.println(": POPPC");
+                if(isStackTrace){ stackTrace(data,"POPPC");}
                 break;
             case 768: // 0x300
                 LD(data);
-                // System.out.print(DECTOHEX(data));
-                // System.out.println(": LD");
+                if(isStackTrace){ stackTrace(data,"LD");}
                 break;
             case 1024: // 0x400
                 ST();
-                // System.out.print(DECTOHEX(data));
-                // System.out.println(": ST");
+                if(isStackTrace){ stackTrace(data,"ST");}
                 break;
             case 1280: // 0x500
                 DUP(data);
-                // System.out.print(DECTOHEX(data));
-                // System.out.println(": DUP");
+                if(isStackTrace){ stackTrace(data,"DUP");}
                 break;
             case 1536: // 0x600
                 DROP(data);
-                // System.out.print(DECTOHEX(data));
-                // System.out.println(": DROP");
+                if(isStackTrace){ stackTrace(data,"DROP");}
                 break;
             case 1792: // 0x700
                 OVER(data);
-                // System.out.print(DECTOHEX(data));
-                // System.out.println(": NOP");
+                if(isStackTrace){ stackTrace(data,"OVER");}
                 break;
             case 2048: // 0x800
                 DNEXT(data);
-                // System.out.print(DECTOHEX(data));
-                // System.out.println(": DNEXT");
+                if(isStackTrace){ stackTrace(data,"DNEXT");}
                 break;
             case 2304: // 0x900
                 SWAP(data);
-                // System.out.print(DECTOHEX(data));
-                // System.out.println(": SWAP");
+                if(isStackTrace){ stackTrace(data,"SWAP");}
                 break;
             case 3840: // 0xF00
                 HALT(data);
-                // System.out.print(DECTOHEX(data));
-                // System.out.println(": HALT");
+                if(isStackTrace){ stackTrace(data,"HALT");}
                 break;
             default:
                 break;
         }
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void ALU(int data) {
 
         switch (data) {
             case 0:
                 ADD(data);
-                // System.out.print(data);
-                // System.out.println(": ADD");
+                if(isStackTrace){ stackTrace(data,"ADD");}
                 break;
             case 1:
                 SUB(data);
-                // System.out.print(data);
-                // System.out.println(": SUB");
+                if(isStackTrace){ stackTrace(data,"SUB");}
                 break;
             case 2:
                 MUL(data);
-                // System.out.print(data);
-                // System.out.println(": MUL");
+                if(isStackTrace){ stackTrace(data,"MUL");}
                 break;
             case 3:
                 DIV(data);
-                // System.out.print(data);
-                // System.out.println(": DIV");
+                if(isStackTrace){ stackTrace(data,"DIV");}
                 break;
             case 4:
                 MOD(data);
-                // System.out.print(data);
-                // System.out.println(": MOD");
+                if(isStackTrace){ stackTrace(data,"MOD");}
                 break;
             case 5:
                 SHL(data);
-                // System.out.print(data);
-                // System.out.println(": SHL");
+                if(isStackTrace){ stackTrace(data,"SHL");}
                 break;
             case 6:
                 SHR(data);
-                // System.out.print(data);
-                // System.out.println(": SHR");
+                if(isStackTrace){ stackTrace(data,"SHR");}
                 break;
             case 7:
                 BAND(data);
-                // System.out.print(data);
-                // System.out.println(": BAND");
+                if(isStackTrace){ stackTrace(data,"BAND");}
                 break;
             case 8:
                 BOR(data);
-                // System.out.print(data);
-                // System.out.println(": BOR");
+                if(isStackTrace){ stackTrace(data,"BOR");}
                 break;
             case 9:
                 BXOR(data);
-                // System.out.print(data);
-                // System.out.println(": BXOR");
+                if(isStackTrace){ stackTrace(data,"BXOR");}
                 break;
             case 10:
                 AND(data);
-                // System.out.print(data);
-                // System.out.println(": AND");
+                if(isStackTrace){ stackTrace(data,"AND");}
                 break;
             case 11:
                 OR(data);
-                // System.out.print(data);
-                // System.out.println(": OR");
+                if(isStackTrace){ stackTrace(data,"OR");}
                 break;
             case 12:
                 EQ(data);
-                // System.out.print(data);
-                // System.out.println(": EQ");
+                if(isStackTrace){ stackTrace(data,"EQ");}
                 break;
             case 13:
                 NE(data);
-                // System.out.print(data);
-                // System.out.println(": NE");
+                if(isStackTrace){ stackTrace(data,"NE");}
                 break;
             case 14:
                 GE(data);
-                // System.out.print(data);
-                // System.out.println(": GE");
+                if(isStackTrace){ stackTrace(data,"GE");}
                 break;
             case 15:
                 LE(data);
-                // System.out.print(data);
-                // System.out.println(": LE");
+                if(isStackTrace){ stackTrace(data,"LE");}
                 break;
             case 16:
                 GT(data);
-                // System.out.print(data);
-                // System.out.println(": GT");
+                if(isStackTrace){ stackTrace(data,"GT");}
                 break;
             case 17:
                 LT(data);
-                // System.out.print(data);
-                // System.out.println(": LT");
+                if(isStackTrace){ stackTrace(data,"LT");}
                 break;
             case 18:
                 NEG(data);
-                // System.out.print(data);
-                // System.out.println(": NEG");
+                if(isStackTrace){ stackTrace(data,"NEG");}
                 break;
             case 19:
                 BNOT(data);
-                // System.out.print(data);
-                // System.out.println(": BNOT");
+                if(isStackTrace){ stackTrace(data,"BNOT");}
                 break;
             case 20:
                 NOT(data);
-                // System.out.print(data);
-                // System.out.println(": NOT");
+                if(isStackTrace){ stackTrace(data,"NOT");}
                 break;
             default:
                 break;
         }
     }
 
-    // 3 bit hex to int
-    private static int HEXTODEC(String data) {
-        int ret = Integer.parseInt(data, 16);
-        return ret;
-    }
-
-    // 3 bit hex to int
-    private static String DECTOHEX(int data) {
-        String ret = Integer.toHexString(data);
-        return ret;
-    }
-
-    // Do Nothing
+    /**
+     *
+     * @param data
+     */
     private static void NOP(int data) {
 
     }
 
-    // Stop CPU Execution
+    /**
+     *
+     * @param data
+     */
     private static void HALT(int data) {
         System.exit(42);
     }
 
-    // PC top
+    /**
+     *
+     * @param data
+     */
     private static void PUSHPC(int data) {
         stack.push(counter);
     }
 
-    // top PC
+    /**
+     *
+     * @param data
+     */
     private static void POPPC(int data) {
         counter = stack.pop();
     }
 
-    // mem[top] top
+    /**
+     *
+     * @param data
+     */
     private static void LD(int data) {
         int top = stack.pop();
         stack.push(mem[top]);
     }
 
-    // top mem[next]
+    /**
+     *
+     * @param data
+     */
     private static void ST() {
         int top = stack.pop();
         int next = stack.pop();
         mem[next] = top;
     }
 
-    // Copies top of stack
+    /**
+     *
+     * @param data
+     */
     private static void DUP(int data) {
         int top = stack.pop();
 
@@ -347,12 +336,18 @@ public class Stumped {
         stack.push(top);
     }
 
-    // Removes top of stack
+    /**
+     *
+     * @param data
+     */
     private static void DROP(int data) {
         stack.pop();
     }
 
-    // Copies next to top
+    /**
+     *
+     * @param data
+     */
     private static void OVER(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -362,7 +357,10 @@ public class Stumped {
         stack.push(next);
     }
 
-    // Drops next
+    /**
+     *
+     * @param data
+     */
     private static void DNEXT(int data) {
         int top = stack.pop();
         stack.pop();
@@ -370,7 +368,10 @@ public class Stumped {
         stack.push(top);
     }
 
-    // Swaps top and next
+    /**
+     *
+     * @param data
+     */
     private static void SWAP(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -379,6 +380,10 @@ public class Stumped {
         stack.push(next);
     }
 
+    /**
+     *
+     * @param dataHex
+     */
     private static void PUSHI(String dataHex) {
         String builder = "";
         for (int i = 0; i < dataHex.length(); i++) {
@@ -436,18 +441,18 @@ public class Stumped {
             }
         }
         String sign = builder.substring(0, 1);
-        String sExt = "";
+        String signExt = "";
 
         if (sign.equals("1")) {
             for (int i = builder.length(); i < 16; i++) {
-                sExt += "1";
+                signExt += "1";
             }
         } else if (sign.equals("0")) {
             for (int i = builder.length(); i < 16; i++) {
-                sExt += "0";
+                signExt += "0";
             }
         }
-        builder = sExt + builder;
+        builder = signExt + builder;
 
         String b2HEX = "";
 
@@ -511,11 +516,19 @@ public class Stumped {
 
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void PUSHA(int data) {
         int top = mem[data];
         stack.push(top);
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void POPA(int data) {
         mem[data] = stack.pop();
     }
@@ -526,7 +539,7 @@ public class Stumped {
      */
     private static void JMPA(String dataHex) {
         counter = HEXTODEC(dataHex);
-        execute(arr.get(counter));
+        CPU(arr.get(counter));
     }
 
     /**
@@ -538,7 +551,7 @@ public class Stumped {
             int test = stack.pop();
             if (test == 0) {
                 counter = HEXTODEC(dataHex);
-                execute(arr.get(counter));
+                CPU(arr.get(counter));
             }
         }
     }
@@ -552,22 +565,34 @@ public class Stumped {
             int test = stack.pop();
             if (test != 0) {
                 counter = HEXTODEC(dataHex);
-                execute(arr.get(counter));
+                CPU(arr.get(counter));
             }
         }
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void IN(int data) {
         if (isInput) {
             stack.push(inputCMD);
         }
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void OUT(int data) {
         //System.out.println("\nOUTPUT:" + stack.pop());
         System.out.println(stack.pop());
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void ADD(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -575,6 +600,10 @@ public class Stumped {
         stack.push(output);
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void SUB(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -582,6 +611,10 @@ public class Stumped {
         stack.push(output);
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void MUL(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -589,30 +622,42 @@ public class Stumped {
         stack.push(output);
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void DIV(int data) {
 
         int top = stack.pop();
         int next = stack.pop();
 
         if (top == 0) {
-            execute("0F00");
+            CPU("0F00");
         } else {
             int output = next / top;
             stack.push(output);
         }
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void MOD(int data) {
         int top = stack.pop();
         int next = stack.pop();
         if (top == 0) {
-            execute("0F00");
+            CPU("0F00");
         } else {
             int output = next % top;
             stack.push(output);
         }
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void SHL(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -620,6 +665,10 @@ public class Stumped {
         stack.push(output);
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void SHR(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -627,6 +676,10 @@ public class Stumped {
         stack.push(output);
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void BAND(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -634,6 +687,10 @@ public class Stumped {
         stack.push(output);
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void BOR(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -641,6 +698,10 @@ public class Stumped {
         stack.push(output);
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void BXOR(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -648,6 +709,10 @@ public class Stumped {
         stack.push(output);
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void AND(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -669,6 +734,10 @@ public class Stumped {
         }
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void OR(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -690,6 +759,10 @@ public class Stumped {
         }
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void EQ(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -701,6 +774,10 @@ public class Stumped {
         }
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void NE(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -712,6 +789,10 @@ public class Stumped {
         }
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void GE(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -723,6 +804,10 @@ public class Stumped {
         }
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void LE(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -734,6 +819,10 @@ public class Stumped {
         }
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void GT(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -745,6 +834,10 @@ public class Stumped {
         }
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void LT(int data) {
         int top = stack.pop();
         int next = stack.pop();
@@ -756,12 +849,20 @@ public class Stumped {
         }
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void NEG(int data) {
         int top = stack.pop();
         top = -top;
         stack.add(top);
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void BNOT(int data) {
         int top = stack.pop();
 
@@ -769,8 +870,77 @@ public class Stumped {
         stack.push(top);
     }
 
+    /**
+     *
+     * @param data
+     */
     private static void NOT(int data) {
         int top = stack.pop();
         stack.push(top);
     }
+
+    /*
+     * The Following Methods are Helper Methods
+     *
+     *
+     */
+
+    /**
+     *
+     * @param b
+     */
+    private static void isStacktrace(boolean b) {
+        isStackTrace = b;
+    }
+
+    /**
+     *
+     * @param data
+     * @param args
+     */
+    private static void stackTrace(int data, String args) {
+        if(isStackTrace) {
+            System.out.print("ARGS: " + args + "Input: " + data + "Stack: " + stack.toString());
+        }
+    }
+
+    /**
+     *
+     * @param args
+     * @throws InterruptedException
+     */
+    private static void debug(String args) {
+        try {
+            TimeUnit.MILLISECONDS.sleep(50);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        if (!stack.empty()) {
+            System.out.print(" Stack: " + stack.toString());
+            System.out.print("\n arg: " + args);
+            System.out.print(" " + "Counter: " + counter);
+        }
+        return;
+    }
+
+    /**
+     *
+     * @param data
+     * @return
+     */
+    private static int HEXTODEC(String data) {
+        int ret = Integer.parseInt(data, 16);
+        return ret;
+    }
+
+    /**
+     *
+     * @param data
+     * @return
+     */
+    private static String DECTOHEX(int data) {
+        String ret = Integer.toHexString(data);
+        return ret;
+    }
+
 }
